@@ -5,6 +5,7 @@
 #   외부 → Ingress → /api/*   → Agent Service (8080)
 #                   → /mlflow/* → MLflow UI (5000)
 #                   → /neo4j/*  → Neo4j Browser (7474)
+#   dashboard.ai-platform.local → Dashboard (3000)
 # =============================================================================
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -54,3 +55,14 @@ spec:
                 name: neo4j-service
                 port:
                   number: 7474
+    # Dashboard UI: 별도 호스트로 분리 (rewrite-target 충돌 방지)
+    - host: dashboard.ai-platform.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dashboard-service
+                port:
+                  number: 3000

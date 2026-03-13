@@ -1,0 +1,56 @@
+# =============================================================================
+# Ingress - 외부 트래픽 라우팅 (Ingress-NGINX)
+# kind 클러스터에서 NodePort 기반 Ingress Controller 사용
+# 통신:
+#   외부 → Ingress → /api/*   → Agent Service (8080)
+#                   → /mlflow/* → MLflow UI (5000)
+#                   → /neo4j/*  → Neo4j Browser (7474)
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-platform-ingress
+  namespace: ai-platform
+  labels:
+    app: ai-platform
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ai-platform.local
+      http:
+        paths:
+          # Agent Service: 메인 API 엔드포인트
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: agent-service
+                port:
+                  number: 8080
+          # ML Serving: ML 추론 및 Drift 모니터링 API
+          - path: /ml(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: ml-serving-service
+                port:
+                  number: 8081
+          # MLflow: 실험 트래킹 UI
+          - path: /mlflow(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: mlflow-service
+                port:
+                  number: 5000
+          # Neo4j Browser: 그래프 시각화 UI
+          - path: /neo4j(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: neo4j-service
+                port:
+                  number: 7474

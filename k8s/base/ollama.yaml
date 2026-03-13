@@ -1,0 +1,62 @@
+# =============================================================================
+# Ollama - LLM 서빙 (LG EXAONE 3.0 모델)
+# LLM 추론 엔진. Agent Service가 LangGraph를 통해 Ollama API를 호출
+# 통신: Agent Service → REST API (http://ollama-service:11434)
+# 참고: EXAONE 모델은 Ollama 기동 후 `ollama pull exaone3` 명령으로 수동 적재 필요
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: ai-platform
+  labels:
+    app: ollama
+    component: llm-serving
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+        component: llm-serving
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports:
+            - containerPort: 11434
+              name: http
+          # 로컬 Mac 환경: CPU 전용 모드. GPU 사용 시 리소스 설정 변경 필요
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
+      volumes:
+        - name: ollama-data
+          emptyDir:
+            sizeLimit: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-service
+  namespace: ai-platform
+  labels:
+    app: ollama
+spec:
+  type: ClusterIP
+  ports:
+    - port: 11434
+      targetPort: 11434
+      name: http
+  selector:
+    app: ollama

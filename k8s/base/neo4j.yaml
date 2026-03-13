@@ -1,0 +1,81 @@
+# =============================================================================
+# Neo4j - Knowledge Graph / Ontology DB
+# GraphRAG 및 Ontology 기반 질의를 위한 그래프 데이터베이스
+# 통신: Agent Service → REST API (bolt://neo4j-service:7687, http://neo4j-service:7474)
+# =============================================================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: neo4j
+  namespace: ai-platform
+  labels:
+    app: neo4j
+    component: graph-db
+spec:
+  serviceName: neo4j-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neo4j
+  template:
+    metadata:
+      labels:
+        app: neo4j
+        component: graph-db
+    spec:
+      containers:
+        - name: neo4j
+          image: neo4j:5.15-community
+          ports:
+            - containerPort: 7474  # HTTP (Browser)
+              name: http
+            - containerPort: 7687  # Bolt Protocol
+              name: bolt
+          env:
+            # 인증 비활성화 (MVP 전용 - 프로덕션에서는 반드시 인증 활성화)
+            - name: NEO4J_AUTH
+              value: "neo4j/neo4jpassword"
+            # 로컬 Mac 리소스 보호를 위한 JVM 힙 사이즈 제한
+            - name: NEO4J_server_memory_heap_initial__size
+              value: "256m"
+            - name: NEO4J_server_memory_heap_max__size
+              value: "512m"
+            - name: NEO4J_server_memory_pagecache_size
+              value: "128m"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: neo4j-data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: neo4j-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j-service
+  namespace: ai-platform
+  labels:
+    app: neo4j
+spec:
+  type: ClusterIP
+  ports:
+    - port: 7474
+      targetPort: 7474
+      name: http
+    - port: 7687
+      targetPort: 7687
+      name: bolt
+  selector:
+    app: neo4j

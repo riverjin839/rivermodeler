@@ -1,0 +1,85 @@
+# =============================================================================
+# Agent Service - FastAPI + LangGraph 오케스트레이션 서비스
+# 사용자 요청을 받아 적절한 Tool(VectorDB, GraphDB, ML)로 라우팅
+# 통신:
+#   Inbound:  Ingress → http://agent-service:8080
+#   Outbound: → Neo4j (bolt://neo4j-service:7687)
+#             → ChromaDB (http://chromadb-service:8000)
+#             → Ollama (http://ollama-service:11434)
+#             → ML Serving (http://ml-serving-service:8081)
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-service
+  namespace: ai-platform
+  labels:
+    app: agent-service
+    component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-service
+  template:
+    metadata:
+      labels:
+        app: agent-service
+        component: backend
+    spec:
+      containers:
+        - name: agent-service
+          image: agent-service:latest
+          imagePullPolicy: Never  # kind 로컬 이미지 사용
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            # --- 내부 서비스 통신 URL (K8s DNS 기반) ---
+            - name: NEO4J_URI
+              value: "bolt://neo4j-service:7687"
+            - name: NEO4J_USER
+              value: "neo4j"
+            - name: NEO4J_PASSWORD
+              value: "neo4jpassword"
+            - name: CHROMADB_HOST
+              value: "http://chromadb-service:8000"
+            - name: OLLAMA_BASE_URL
+              value: "http://ollama-service:11434"
+            - name: ML_SERVING_URL
+              value: "http://ml-serving-service:8081"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-service
+  namespace: ai-platform
+  labels:
+    app: agent-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+  selector:
+    app: agent-service

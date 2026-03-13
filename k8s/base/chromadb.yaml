@@ -1,0 +1,67 @@
+# =============================================================================
+# ChromaDB - Vector Database
+# 일반 RAG(Retrieval-Augmented Generation) 용 벡터 유사도 검색 DB
+# 통신: Agent Service → REST API (http://chromadb-service:8000)
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chromadb
+  namespace: ai-platform
+  labels:
+    app: chromadb
+    component: vector-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chromadb
+  template:
+    metadata:
+      labels:
+        app: chromadb
+        component: vector-db
+    spec:
+      containers:
+        - name: chromadb
+          image: chromadb/chroma:0.4.22
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: IS_PERSISTENT
+              value: "TRUE"
+            - name: PERSIST_DIRECTORY
+              value: "/chroma/chroma"
+            - name: ANONYMIZED_TELEMETRY
+              value: "FALSE"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: chromadb-data
+              mountPath: /chroma/chroma
+      volumes:
+        - name: chromadb-data
+          emptyDir:
+            sizeLimit: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chromadb-service
+  namespace: ai-platform
+  labels:
+    app: chromadb
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  selector:
+    app: chromadb

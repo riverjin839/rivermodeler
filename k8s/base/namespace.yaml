@@ -1,0 +1,11 @@
+# =============================================================================
+# AI Platform Namespace
+# 모든 AI 플랫폼 컴포넌트를 격리하기 위한 전용 Namespace
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-platform
+  labels:
+    app.kubernetes.io/part-of: ai-platform
+    app.kubernetes.io/managed-by: manual

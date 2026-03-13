@@ -1,0 +1,65 @@
+# =============================================================================
+# ML Serving Service - 전통적 ML 모델 추론 + Drift 감지
+# MLflow 레지스트리에서 모델 로드 후 추론, Evidently AI로 Drift 모니터링
+# 통신:
+#   Inbound: Agent Service → http://ml-serving-service:8081
+#   Internal: Evidently 리포트는 내부 생성 (추후 대시보드 연동 가능)
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-serving
+  namespace: ai-platform
+  labels:
+    app: ml-serving
+    component: ml-inference
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ml-serving
+  template:
+    metadata:
+      labels:
+        app: ml-serving
+        component: ml-inference
+    spec:
+      containers:
+        - name: ml-serving
+          image: ml-serving:latest
+          imagePullPolicy: Never  # kind 로컬 이미지 사용
+          ports:
+            - containerPort: 8081
+              name: http
+          env:
+            - name: MLFLOW_TRACKING_URI
+              value: "http://mlflow-service:5000"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-serving-service
+  namespace: ai-platform
+  labels:
+    app: ml-serving
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8081
+      targetPort: 8081
+      name: http
+  selector:
+    app: ml-serving

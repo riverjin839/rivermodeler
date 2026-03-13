@@ -1,0 +1,66 @@
+# =============================================================================
+# MLflow - ML 모델 레지스트리 및 실험 트래킹
+# ML 모델 버전 관리, 실험 추적, 모델 서빙 메타데이터 저장
+# 통신: ML Serving → http://mlflow-service:5000
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+  namespace: ai-platform
+  labels:
+    app: mlflow
+    component: ml-registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+        component: ml-registry
+    spec:
+      containers:
+        - name: mlflow
+          image: ghcr.io/mlflow/mlflow:v2.10.0
+          command: ["mlflow", "server"]
+          args:
+            - "--host=0.0.0.0"
+            - "--port=5000"
+            - "--backend-store-uri=sqlite:///mlflow/mlflow.db"
+            - "--default-artifact-root=/mlflow/artifacts"
+          ports:
+            - containerPort: 5000
+              name: http
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: mlflow-data
+              mountPath: /mlflow
+      volumes:
+        - name: mlflow-data
+          emptyDir:
+            sizeLimit: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow-service
+  namespace: ai-platform
+  labels:
+    app: mlflow
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5000
+      targetPort: 5000
+      name: http
+  selector:
+    app: mlflow

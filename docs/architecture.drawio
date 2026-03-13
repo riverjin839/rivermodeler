@@ -1,0 +1,290 @@
+<mxfile host="app.diagrams.net" modified="2026-03-13T00:00:00.000Z" agent="Claude" version="24.0.0" type="device">
+  <diagram id="ai-platform-architecture" name="AI Platform Architecture">
+    <mxGraphModel dx="1800" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== 타이틀 ==================== -->
+        <mxCell id="title" value="CRISP-DM 기반 통합 AI Platform MVP 아키텍처" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=20;fontStyle=1;fontColor=#1a1a2e;" vertex="1" parent="1">
+          <mxGeometry x="420" y="20" width="520" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== 외부 사용자 ==================== -->
+        <mxCell id="user" value="사용자&#xa;(브라우저)" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="300" width="80" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== kind 클러스터 경계 ==================== -->
+        <mxCell id="cluster" value="kind Cluster (ai-platform namespace)" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=13;fontColor=#333333;rounded=1;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="200" y="80" width="1350" height="970" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== Ingress 레이어 ==================== -->
+        <mxCell id="ingress" value="Ingress-NGINX Controller" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=12;verticalAlign=middle;" vertex="1" parent="cluster">
+          <mxGeometry x="30" y="50" width="1290" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ingress_label1" value="dashboard.ai-platform.local" style="text;html=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontSize=10;fontColor=#9673a6;" vertex="1" parent="cluster">
+          <mxGeometry x="160" y="100" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ingress_label2" value="ai-platform.local/api/*" style="text;html=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontSize=10;fontColor=#9673a6;" vertex="1" parent="cluster">
+          <mxGeometry x="520" y="100" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ingress_label3" value="ai-platform.local/ml/*" style="text;html=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontSize=10;fontColor=#9673a6;" vertex="1" parent="cluster">
+          <mxGeometry x="880" y="100" width="160" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== 프론트엔드 레이어 ==================== -->
+        <mxCell id="fe_layer" value="Frontend Layer" style="swimlane;startSize=25;fillColor=#e8f5e9;strokeColor=#82b366;fontSize=11;fontStyle=1;rounded=1;arcSize=8;" vertex="1" parent="cluster">
+          <mxGeometry x="30" y="130" width="340" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="dashboard" value="Dashboard&#xa;(Next.js 14 App Router)&#xa;:3000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="fe_layer">
+          <mxGeometry x="20" y="35" width="300" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="dash_page1" value="대시보드 (/)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=9;" vertex="1" parent="fe_layer">
+          <mxGeometry x="20" y="90" width="90" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="dash_page2" value="AI 채팅 (/chat)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=9;" vertex="1" parent="fe_layer">
+          <mxGeometry x="120" y="90" width="90" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="dash_page3" value="ML 모니터 (/ml)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=9;" vertex="1" parent="fe_layer">
+          <mxGeometry x="220" y="90" width="90" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="bff_label" value="BFF API Routes (서버 사이드 프록시)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#82b366;fontSize=9;fontStyle=2;" vertex="1" parent="fe_layer">
+          <mxGeometry x="20" y="140" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== 백엔드 서비스 레이어 ==================== -->
+        <mxCell id="be_layer" value="Backend Service Layer (Hexagonal Architecture)" style="swimlane;startSize=25;fillColor=#fff3e0;strokeColor=#d6a756;fontSize=11;fontStyle=1;rounded=1;arcSize=8;" vertex="1" parent="cluster">
+          <mxGeometry x="30" y="360" width="680" height="350" as="geometry" />
+        </mxCell>
+
+        <!-- Agent Service -->
+        <mxCell id="agent_svc" value="Agent Service (FastAPI + LangGraph)&#xa;:8080" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;" vertex="1" parent="be_layer">
+          <mxGeometry x="20" y="35" width="640" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Hexagonal 내부 구조 -->
+        <mxCell id="hex_inbound" value="Inbound Adapter&#xa;(FastAPI Routes)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="be_layer">
+          <mxGeometry x="20" y="90" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="hex_domain" value="Domain Service&#xa;(LangGraph Orchestrator)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc80;strokeColor=#d6b656;fontSize=9;fontStyle=1;" vertex="1" parent="be_layer">
+          <mxGeometry x="180" y="90" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="hex_ports" value="Outbound Ports&#xa;(추상 인터페이스)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="be_layer">
+          <mxGeometry x="380" y="90" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="hex_adapters" value="Outbound Adapters&#xa;(구현체)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="be_layer">
+          <mxGeometry x="540" y="90" width="120" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 화살표: 헥사고날 내부 -->
+        <mxCell id="hex_e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="be_layer" source="hex_inbound" target="hex_domain">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hex_e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="be_layer" source="hex_domain" target="hex_ports">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="hex_e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="be_layer" source="hex_ports" target="hex_adapters">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- LangGraph 라우팅 노드 -->
+        <mxCell id="lg_title" value="LangGraph 상태 머신" style="text;html=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontSize=10;fontStyle=5;fontColor=#d6b656;" vertex="1" parent="be_layer">
+          <mxGeometry x="150" y="155" width="140" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_classify" value="Classify" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#d6b656;fontSize=9;fontStyle=1;" vertex="1" parent="be_layer">
+          <mxGeometry x="50" y="180" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_vrag" value="Vector RAG" style="ellipse;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#6c8ebf;fontSize=9;" vertex="1" parent="be_layer">
+          <mxGeometry x="180" y="180" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_grag" value="Graph RAG" style="ellipse;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#82b366;fontSize=9;" vertex="1" parent="be_layer">
+          <mxGeometry x="290" y="180" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_mlpred" value="ML Predict" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e6a020;fontSize=9;" vertex="1" parent="be_layer">
+          <mxGeometry x="400" y="180" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_synth" value="Synthesize" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#d6b656;fontSize=9;fontStyle=1;" vertex="1" parent="be_layer">
+          <mxGeometry x="530" y="180" width="80" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- LangGraph 화살표 -->
+        <mxCell id="lg_e1" style="rounded=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="be_layer" source="lg_classify" target="lg_vrag">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_e2" style="rounded=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="be_layer" source="lg_classify" target="lg_grag">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_e3" style="rounded=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="be_layer" source="lg_classify" target="lg_mlpred">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_e4" style="rounded=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="be_layer" source="lg_vrag" target="lg_synth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_e5" style="rounded=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="be_layer" source="lg_grag" target="lg_synth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_e6" style="rounded=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="be_layer" source="lg_mlpred" target="lg_synth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ML Serving Service -->
+        <mxCell id="ml_svc" value="ML Serving Service (FastAPI)&#xa;:8081" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#e57373;fontSize=11;fontStyle=1;" vertex="1" parent="be_layer">
+          <mxGeometry x="20" y="250" width="300" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_drift" value="Evidently AI&#xa;Drift Detector" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#e57373;fontSize=9;" vertex="1" parent="be_layer">
+          <mxGeometry x="350" y="250" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="be_layer" source="ml_svc" target="ml_drift">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ml_infer" value="추론 → 버퍼 적재 → 윈도우 Drift 검사" style="text;html=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontSize=8;fontColor=#e57373;fontStyle=2;" vertex="1" parent="be_layer">
+          <mxGeometry x="330" y="293" width="200" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== 데이터/인프라 레이어 ==================== -->
+        <mxCell id="data_layer" value="Data &amp; Infrastructure Layer" style="swimlane;startSize=25;fillColor=#e3f2fd;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;rounded=1;arcSize=8;" vertex="1" parent="cluster">
+          <mxGeometry x="740" y="360" width="580" height="350" as="geometry" />
+        </mxCell>
+
+        <!-- Neo4j -->
+        <mxCell id="neo4j" value="Neo4j&#xa;(Knowledge Graph / Ontology)&#xa;:7687 bolt / :7474 http" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#bbdefb;strokeColor=#6c8ebf;fontSize=10;fontStyle=1;" vertex="1" parent="data_layer">
+          <mxGeometry x="30" y="40" width="160" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ChromaDB -->
+        <mxCell id="chromadb" value="ChromaDB&#xa;(Vector DB / RAG)&#xa;:8000" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#c8e6c9;strokeColor=#82b366;fontSize=10;fontStyle=1;" vertex="1" parent="data_layer">
+          <mxGeometry x="210" y="40" width="160" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Ollama -->
+        <mxCell id="ollama" value="Ollama&#xa;(LG EXAONE 3.0)&#xa;:11434" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;fontStyle=1;" vertex="1" parent="data_layer">
+          <mxGeometry x="390" y="50" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- MLflow -->
+        <mxCell id="mlflow" value="MLflow&#xa;(Model Registry / Tracking)&#xa;:5000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#9673a6;fontSize=10;fontStyle=1;" vertex="1" parent="data_layer">
+          <mxGeometry x="30" y="160" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- StatefulSet / Deployment 라벨 -->
+        <mxCell id="neo4j_type" value="StatefulSet" style="text;html=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontSize=8;fontColor=#6c8ebf;fontStyle=2;" vertex="1" parent="data_layer">
+          <mxGeometry x="60" y="120" width="80" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="chroma_type" value="Deployment" style="text;html=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontSize=8;fontColor=#82b366;fontStyle=2;" vertex="1" parent="data_layer">
+          <mxGeometry x="250" y="120" width="80" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="ollama_type" value="Deployment" style="text;html=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontSize=8;fontColor=#9673a6;fontStyle=2;" vertex="1" parent="data_layer">
+          <mxGeometry x="420" y="115" width="80" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- 리소스 제한 표 -->
+        <mxCell id="resource_table" value="리소스 제한 (Mac OOM 방지)&#xa;───────────────────────&#xa;Neo4j:    512Mi ~ 1Gi&#xa;ChromaDB: 256Mi ~ 512Mi&#xa;Ollama:   2Gi ~ 4Gi&#xa;MLflow:   256Mi ~ 512Mi&#xa;Agent:    256Mi ~ 512Mi&#xa;ML Serv:  256Mi ~ 512Mi&#xa;Dashboard: 128Mi ~ 256Mi" style="text;html=1;align=left;verticalAlign=top;fillColor=#fff3e0;strokeColor=#d6b656;fontSize=9;fontFamily=monospace;rounded=1;spacingLeft=8;spacingTop=4;" vertex="1" parent="data_layer">
+          <mxGeometry x="280" y="150" width="270" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== 서비스 간 통신 화살표 ==================== -->
+
+        <!-- 사용자 → Ingress -->
+        <mxCell id="e_user_ingress" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9673a6;fontColor=#9673a6;fontSize=9;" edge="1" parent="1" source="user" target="ingress">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Ingress → Dashboard -->
+        <mxCell id="e_ing_dash" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;" edge="1" parent="cluster" source="ingress" target="dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BFF → Agent Service -->
+        <mxCell id="e_bff_agent" value="BFF Proxy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;fontSize=9;fontColor=#d6b656;" edge="1" parent="cluster" source="bff_label" target="agent_svc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BFF → ML Serving -->
+        <mxCell id="e_bff_ml" value="BFF Proxy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#e57373;fontSize=9;fontColor=#e57373;" edge="1" parent="cluster" source="bff_label" target="ml_svc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Agent → Neo4j -->
+        <mxCell id="e_agent_neo4j" value="bolt://" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;dashed=1;fontSize=9;fontColor=#6c8ebf;" edge="1" parent="cluster" source="hex_adapters" target="neo4j">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Agent → ChromaDB -->
+        <mxCell id="e_agent_chroma" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;dashed=1;fontSize=9;fontColor=#82b366;" edge="1" parent="cluster" source="hex_adapters" target="chromadb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Agent → Ollama -->
+        <mxCell id="e_agent_ollama" value="REST" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9673a6;dashed=1;fontSize=9;fontColor=#9673a6;" edge="1" parent="cluster" source="hex_adapters" target="ollama">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ML Serving → MLflow -->
+        <mxCell id="e_ml_mlflow" value="모델 로드" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9673a6;dashed=1;fontSize=9;fontColor=#9673a6;" edge="1" parent="cluster" source="ml_svc" target="mlflow">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== CRISP-DM 사이드바 ==================== -->
+        <mxCell id="crisp_title" value="CRISP-DM Mapping" style="text;html=1;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontSize=12;fontStyle=5;fontColor=#555555;" vertex="1" parent="cluster">
+          <mxGeometry x="30" y="740" width="140" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="crisp1" value="1. Business Understanding → Domain Models (query.py)" style="text;html=1;align=left;verticalAlign=middle;fillColor=#f5f5f5;strokeColor=#cccccc;fontSize=9;rounded=1;spacingLeft=5;" vertex="1" parent="cluster">
+          <mxGeometry x="30" y="770" width="380" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="crisp2" value="2. Data Understanding → GraphRAG (Neo4j) + VectorRAG (ChromaDB)" style="text;html=1;align=left;verticalAlign=middle;fillColor=#f5f5f5;strokeColor=#cccccc;fontSize=9;rounded=1;spacingLeft=5;" vertex="1" parent="cluster">
+          <mxGeometry x="30" y="800" width="380" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="crisp3" value="3. Data Preparation → Embedding + Knowledge Graph 적재" style="text;html=1;align=left;verticalAlign=middle;fillColor=#f5f5f5;strokeColor=#cccccc;fontSize=9;rounded=1;spacingLeft=5;" vertex="1" parent="cluster">
+          <mxGeometry x="30" y="830" width="380" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="crisp4" value="4. Modeling → ML Serving + MLflow (Model Registry)" style="text;html=1;align=left;verticalAlign=middle;fillColor=#f5f5f5;strokeColor=#cccccc;fontSize=9;rounded=1;spacingLeft=5;" vertex="1" parent="cluster">
+          <mxGeometry x="30" y="860" width="380" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="crisp5" value="5. Evaluation → Evidently AI (Drift Detection)" style="text;html=1;align=left;verticalAlign=middle;fillColor=#f5f5f5;strokeColor=#cccccc;fontSize=9;rounded=1;spacingLeft=5;" vertex="1" parent="cluster">
+          <mxGeometry x="30" y="890" width="380" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="crisp6" value="6. Deployment → kind K8s + Ingress-NGINX + Docker" style="text;html=1;align=left;verticalAlign=middle;fillColor=#f5f5f5;strokeColor=#cccccc;fontSize=9;rounded=1;spacingLeft=5;" vertex="1" parent="cluster">
+          <mxGeometry x="30" y="920" width="380" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== 범례 ==================== -->
+        <mxCell id="legend" value="범례" style="swimlane;startSize=20;fillColor=#fafafa;strokeColor=#cccccc;fontSize=10;fontStyle=1;rounded=1;" vertex="1" parent="cluster">
+          <mxGeometry x="740" y="740" width="580" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="Frontend (Next.js)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" vertex="1" parent="legend">
+          <mxGeometry x="20" y="30" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="Backend (FastAPI)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="legend">
+          <mxGeometry x="150" y="30" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="ML Serving" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffccbc;strokeColor=#e57373;fontSize=9;" vertex="1" parent="legend">
+          <mxGeometry x="280" y="30" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4" value="Database" style="shape=cylinder3;whiteSpace=wrap;html=1;size=5;fillColor=#bbdefb;strokeColor=#6c8ebf;fontSize=9;" vertex="1" parent="legend">
+          <mxGeometry x="20" y="65" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5" value="LLM / ML Infra" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" vertex="1" parent="legend">
+          <mxGeometry x="150" y="70" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="leg6" value="동기 호출" style="endArrow=classic;html=1;strokeColor=#333333;fontSize=9;" edge="1" parent="legend">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint x="20" y="125" as="sourcePoint" />
+            <mxPoint x="130" y="125" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg7" value="비동기/내부 호출" style="endArrow=classic;html=1;strokeColor=#333333;fontSize=9;dashed=1;" edge="1" parent="legend">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint x="20" y="155" as="sourcePoint" />
+            <mxPoint x="130" y="155" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg8" value="Hexagonal Architecture&#xa;───────────────&#xa;Inbound Adapter&#xa;  → Domain Service&#xa;    → Outbound Port&#xa;      → Outbound Adapter" style="text;html=1;align=left;verticalAlign=top;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;fontFamily=monospace;rounded=1;spacingLeft=8;spacingTop=4;" vertex="1" parent="legend">
+          <mxGeometry x="310" y="65" width="250" height="110" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

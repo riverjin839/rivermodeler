@@ -2,6 +2,8 @@
 # Neo4j - Knowledge Graph / Ontology DB
 # GraphRAG 및 Ontology 기반 질의를 위한 그래프 데이터베이스
 # 통신: Agent Service → REST API (bolt://neo4j-service:7687, http://neo4j-service:7474)
+#
+# 데이터 영속화: hostPath → kind extraMount → 호스트 ~/.ai-platform-data/neo4j
 # =============================================================================
 apiVersion: apps/v1
 kind: StatefulSet
@@ -32,7 +34,6 @@ spec:
             - containerPort: 7687  # Bolt Protocol
               name: bolt
           env:
-            # 인증 비활성화 (MVP 전용 - 프로덕션에서는 반드시 인증 활성화)
             - name: NEO4J_AUTH
               value: "neo4j/neo4jpassword"
             # 로컬 Mac 리소스 보호를 위한 JVM 힙 사이즈 제한
@@ -52,14 +53,11 @@ spec:
           volumeMounts:
             - name: neo4j-data
               mountPath: /data
-  volumeClaimTemplates:
-    - metadata:
-        name: neo4j-data
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 2Gi
+      volumes:
+        - name: neo4j-data
+          hostPath:
+            path: /data/ai-platform/neo4j
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service

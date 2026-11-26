@@ -114,7 +114,9 @@ rivermodeler/
 ├── scripts/
 │   ├── 01-create-cluster.sh                  # kind 클러스터 생성 + Ingress 설치
 │   ├── 02-deploy-platform.sh                 # 이미지 빌드 → 로드 → K8s 배포
-│   └── 03-load-exaone.sh                     # EXAONE 3.0 모델 적재
+│   ├── 03-load-exaone.sh                     # EXAONE 3.0 모델 적재
+│   ├── backup.sh                             # 데이터 백업 (Pod → 호스트 tar.gz)
+│   └── restore.sh                            # 데이터 복구 (tar.gz → Pod)
 │
 ├── docs/
 │   └── architecture.drawio                   # 아키텍처 다이어그램 (draw.io)
@@ -264,6 +266,105 @@ curl http://ai-platform.local/ml/drift/status
 
 ---
 
+## 데이터 영속화
+
+kind 클러스터를 삭제/재생성해도 데이터가 보존되도록 **호스트 디렉토리 마운트** 방식을 사용합니다.
+
+### 동작 원리
+
+```
+Mac 호스트                       kind 노드                    K8s Pod
+~/.ai-platform-data/neo4j   →   /data/ai-platform/neo4j   →  /data (Neo4j)
+~/.ai-platform-data/chromadb →  /data/ai-platform/chromadb →  /chroma/chroma
+~/.ai-platform-data/ollama   →  /data/ai-platform/ollama   →  /root/.ollama
+~/.ai-platform-data/mlflow   →  /data/ai-platform/mlflow   →  /mlflow
+```
+
+| 계층 | 메커니즘 | 설명 |
+|------|----------|------|
+| kind extraMounts | Docker bind mount | 호스트 디렉토리 → kind 노드 (클러스터 삭제 시에도 보존) |
+| K8s hostPath | 노드 디렉토리 → Pod | kind 노드 경로를 Pod 내부에 마운트 |
+
+### 클러스터 재생성 시나리오
+
+```bash
+# 1. (선택) 사전 백업
+./scripts/backup.sh
+
+# 2. 클러스터 재생성 — 데이터는 호스트에 보존됨
+./scripts/01-create-cluster.sh
+
+# 3. 재배포 — 기존 데이터가 자동으로 연결됨
+./scripts/02-deploy-platform.sh
+```
+
+데이터를 완전히 초기화하려면:
+```bash
+./scripts/01-create-cluster.sh --clean
+```
+
+### 데이터 디렉토리 커스터마이징
+
+```bash
+# 환경변수로 데이터 경로 변경 가능
+export AI_PLATFORM_DATA_DIR=/path/to/custom/data
+./scripts/01-create-cluster.sh
+```
+
+---
+
+## 백업 & 복구
+
+호스트 디렉토리 영속화와 별개로, **이동/공유 가능한 포터블 백업**을 생성할 수 있습니다.
+
+### 백업
+
+```bash
+# 기본: backups/YYYYMMDD_HHMMSS/ 에 저장
+./scripts/backup.sh
+
+# 지정 경로에 저장
+./scripts/backup.sh /path/to/backup/dir
+```
+
+백업 대상:
+
+| 서비스 | 백업 파일 | 내용 |
+|--------|-----------|------|
+| Neo4j | `neo4j-data.tar.gz` | `/data` 디렉토리 (그래프 DB 전체) |
+| ChromaDB | `chromadb-data.tar.gz` | `/chroma/chroma` (벡터 임베딩) |
+| MLflow | `mlflow-data.tar.gz` | SQLite DB + 모델 아티팩트 |
+| Ollama | `ollama-data.tar.gz` | 모델 파일 (EXAONE 등) |
+| Ollama | `ollama-models.txt` | 적재된 모델 목록 (파일 복구 실패 시 재다운로드용) |
+
+### 복구
+
+```bash
+# 특정 백업에서 복구
+./scripts/restore.sh backups/20260101_120000
+
+# 최신 백업 자동 선택
+./scripts/restore.sh
+```
+
+### 전체 재구축 플로우
+
+```bash
+# 1. 기존 클러스터에서 백업
+./scripts/backup.sh
+
+# 2. 클러스터 완전 초기화 (데이터 포함 삭제)
+./scripts/01-create-cluster.sh --clean
+
+# 3. 플랫폼 재배포
+./scripts/02-deploy-platform.sh
+
+# 4. 백업에서 복구
+./scripts/restore.sh
+```
+
+---
+
 ## 리소스 제한 (Mac OOM 방지)
 
 | 서비스 | Request | Limit | 비고 |
@@ -312,5 +413,12 @@ kubectl logs -n ai-platform deployment/dashboard
 ## 클러스터 삭제
 
 ```bash
+# 클러스터만 삭제 (데이터 보존)
 kind delete cluster --name ai-platform
+
+# 데이터까지 완전 삭제
+./scripts/01-create-cluster.sh --clean
+
+# 호스트 데이터 수동 삭제
+rm -rf ~/.ai-platform-data
 ```

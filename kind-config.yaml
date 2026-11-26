@@ -2,6 +2,10 @@
 # kind 클러스터 설정 (Mac 로컬 환경)
 # Ingress-NGINX 컨트롤러 사용을 위한 포트 매핑 포함
 #
+# 데이터 영속화:
+#   호스트의 ~/.ai-platform-data/ 를 kind 노드에 마운트하여
+#   클러스터를 삭제/재생성해도 데이터가 보존됩니다.
+#
 # 사용법: kind create cluster --config kind-config.yaml --name ai-platform
 # =============================================================================
 kind: Cluster
@@ -23,3 +27,20 @@ nodes:
       - containerPort: 443
         hostPort: 443
         protocol: TCP
+    # =========================================================================
+    # 호스트 디렉토리 → kind 노드 마운트 (데이터 영속화)
+    # kind delete cluster 후에도 호스트 파일시스템에 데이터 유지
+    # =========================================================================
+    extraMounts:
+      # Neo4j: Knowledge Graph 데이터
+      - hostPath: ${AI_PLATFORM_DATA_DIR:-${HOME}/.ai-platform-data}/neo4j
+        containerPath: /data/ai-platform/neo4j
+      # ChromaDB: 벡터 임베딩 데이터
+      - hostPath: ${AI_PLATFORM_DATA_DIR:-${HOME}/.ai-platform-data}/chromadb
+        containerPath: /data/ai-platform/chromadb
+      # Ollama: LLM 모델 파일 (EXAONE 등)
+      - hostPath: ${AI_PLATFORM_DATA_DIR:-${HOME}/.ai-platform-data}/ollama
+        containerPath: /data/ai-platform/ollama
+      # MLflow: 실험 메타데이터 + 모델 아티팩트
+      - hostPath: ${AI_PLATFORM_DATA_DIR:-${HOME}/.ai-platform-data}/mlflow
+        containerPath: /data/ai-platform/mlflow

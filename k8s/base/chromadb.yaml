@@ -2,6 +2,8 @@
 # ChromaDB - Vector Database
 # 일반 RAG(Retrieval-Augmented Generation) 용 벡터 유사도 검색 DB
 # 통신: Agent Service → REST API (http://chromadb-service:8000)
+#
+# 데이터 영속화: hostPath → kind extraMount → 호스트 ~/.ai-platform-data/chromadb
 # =============================================================================
 apiVersion: apps/v1
 kind: Deployment
@@ -47,8 +49,9 @@ spec:
               mountPath: /chroma/chroma
       volumes:
         - name: chromadb-data
-          emptyDir:
-            sizeLimit: 2Gi
+          hostPath:
+            path: /data/ai-platform/chromadb
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service

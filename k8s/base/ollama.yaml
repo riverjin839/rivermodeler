@@ -3,6 +3,9 @@
 # LLM 추론 엔진. Agent Service가 LangGraph를 통해 Ollama API를 호출
 # 통신: Agent Service → REST API (http://ollama-service:11434)
 # 참고: EXAONE 모델은 Ollama 기동 후 `ollama pull exaone3` 명령으로 수동 적재 필요
+#
+# 데이터 영속화: hostPath → kind extraMount → 호스트 ~/.ai-platform-data/ollama
+#   모델 파일이 호스트에 보존되어 클러스터 재생성 후 재다운로드 불필요
 # =============================================================================
 apiVersion: apps/v1
 kind: Deployment
@@ -42,8 +45,9 @@ spec:
               mountPath: /root/.ollama
       volumes:
         - name: ollama-data
-          emptyDir:
-            sizeLimit: 10Gi
+          hostPath:
+            path: /data/ai-platform/ollama
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service

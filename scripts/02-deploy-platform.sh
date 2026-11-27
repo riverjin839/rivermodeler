@@ -26,10 +26,14 @@ docker build -t agent-service:latest "$PROJECT_DIR/services/agent-service"
 echo "  → ml-serving 빌드 중..."
 docker build -t ml-serving:latest "$PROJECT_DIR/services/ml-serving"
 
+echo "  → dashboard 빌드 중..."
+docker build -t dashboard:latest "$PROJECT_DIR/services/dashboard"
+
 # --- 3. kind 클러스터에 이미지 로드 ---
 echo "[STEP 3/5] kind 클러스터에 이미지 로드..."
 kind load docker-image agent-service:latest --name "$CLUSTER_NAME"
 kind load docker-image ml-serving:latest --name "$CLUSTER_NAME"
+kind load docker-image dashboard:latest --name "$CLUSTER_NAME"
 
 # --- 4. 인프라 컴포넌트 배포 (DB, LLM) ---
 echo "[STEP 4/5] 인프라 컴포넌트 배포..."
@@ -53,6 +57,7 @@ kubectl wait --namespace ai-platform \
 echo "[STEP 5/5] 애플리케이션 서비스 배포..."
 kubectl apply -f "$PROJECT_DIR/k8s/base/agent-service.yaml"
 kubectl apply -f "$PROJECT_DIR/k8s/base/ml-serving.yaml"
+kubectl apply -f "$PROJECT_DIR/k8s/base/dashboard.yaml"
 kubectl apply -f "$PROJECT_DIR/k8s/base/ingress.yaml"
 
 echo ""
@@ -60,9 +65,10 @@ echo "========================================="
 echo " 배포 완료!"
 echo ""
 echo " /etc/hosts에 아래 항목 추가 필요:"
-echo "   127.0.0.1 ai-platform.local"
+echo "   127.0.0.1 ai-platform.local dashboard.ai-platform.local"
 echo ""
 echo " 접속 URL:"
+echo "   Dashboard:  http://dashboard.ai-platform.local/"
 echo "   Agent API:  http://ai-platform.local/api/v1/query"
 echo "   ML API:     http://ai-platform.local/ml/predict"
 echo "   MLflow UI:  http://ai-platform.local/mlflow/"

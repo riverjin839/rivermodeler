@@ -1,0 +1,75 @@
+# =============================================================================
+# Dashboard - Next.js 풀스택 대시보드 UI
+# AI 에이전트 채팅, ML Drift 모니터링, 시스템 상태 대시보드
+# 통신:
+#   Inbound:  Ingress → http://dashboard-service:3000
+#   Outbound: → Agent Service (http://agent-service:8080) - BFF Proxy
+#             → ML Serving (http://ml-serving-service:8081) - BFF Proxy
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  namespace: ai-platform
+  labels:
+    app: dashboard
+    component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard
+  template:
+    metadata:
+      labels:
+        app: dashboard
+        component: frontend
+    spec:
+      containers:
+        - name: dashboard
+          image: dashboard:latest
+          imagePullPolicy: Never  # kind 로컬 이미지 사용
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            # --- BFF Proxy 대상 서비스 URL (K8s DNS 기반) ---
+            - name: AGENT_SERVICE_URL
+              value: "http://agent-service:8080"
+            - name: ML_SERVING_URL
+              value: "http://ml-serving-service:8081"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard-service
+  namespace: ai-platform
+  labels:
+    app: dashboard
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: http
+  selector:
+    app: dashboard
